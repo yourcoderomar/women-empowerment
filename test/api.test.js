@@ -1,19 +1,30 @@
-// End-to-end test of the main flow against a throwaway in-process Postgres (PGlite). Run: npm test
+// End-to-end test of the main flow. Needs MySQL running (XAMPP): it creates a throwaway database
+// `women_platform_test`, runs everything against it, then drops it. Your real data is never touched.
+// Run: npm test   (other server/user: set TEST_DATABASE_URL, e.g. mysql://root:secret@localhost:3306/women_platform_test)
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { PGlite } = require('@electric-sql/pglite');
-const { PGLiteSocketServer } = require('@electric-sql/pglite-socket');
+const mysql = require('mysql2/promise');
 
-let pgServer, server, base, pool;
+const TEST_URL = process.env.TEST_DATABASE_URL || 'mysql://root:@localhost:3306/women_platform_test';
+const dbName = new URL(TEST_URL).pathname.slice(1);
+const serverUrl = TEST_URL.replace(/\/[^/]*$/, '/'); // same server, no database selected
+
+let server, base, pool;
+
+const admin = async (sql) => {
+  const conn = await mysql.createConnection(serverUrl);
+  await conn.query(sql);
+  await conn.end();
+};
 
 before(async () => {
-  pgServer = new PGLiteSocketServer({ db: await PGlite.create(), port: 0, maxConnections: 10 });
-  await pgServer.start();
-  process.env.DATABASE_URL = `postgres://postgres@${pgServer.getServerConn()}/postgres`;
+  await admin(`DROP DATABASE IF EXISTS \`${dbName}\``);
+  await admin(`CREATE DATABASE \`${dbName}\` CHARACTER SET utf8mb4`);
+  process.env.DATABASE_URL = TEST_URL;
   process.env.JWT_SECRET = 'test-secret';
   process.env.ADMIN_SECRET = 'admin-secret';
 
-  const db = require('../src/db');
+  const db = require('../src/db/connection');
   pool = db.pool;
   await db.init();
   server = require('../src/app').listen(0);
@@ -21,9 +32,9 @@ before(async () => {
 });
 
 after(async () => {
-  server.close();
-  await pool.end();
-  await pgServer.stop();
+  server?.close();
+  await pool?.end();
+  await admin(`DROP DATABASE IF EXISTS \`${dbName}\``);
 });
 
 async function call(method, path, body, token) {
@@ -157,7 +168,7 @@ test('full flow: register → verify → sell → order → pay → review → c
 
   // Misc
   await ok(401, call('GET', '/orders'));
-  await ok(400, call('GET', '/foods/not-an-id'));
+  await ok(404, call('GET', '/foods/not-an-id')); // MySQL finds no row for a non-number id
   await ok(204, call('DELETE', `/foods/${cake.food_item_id}`, null, P));
   assert.equal((await ok(200, call('GET', `/orders/${order.order_id}`, null, C))).items.length, 2); // history survives
   await ok(204, call('DELETE', '/users/me', null, P));

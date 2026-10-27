@@ -48,8 +48,8 @@ Out of scope for now: a real card payment gateway, file upload (documents are st
 - **Usability:** REST JSON API that a mobile app can consume.
 - **Maintainability:** models / routes / middleware structure, automated end-to-end test, Postman collection.
 
-## 7. Database Design (PostgreSQL)
-The full SQL is in [`src/schema.sql`](../src/schema.sql). Tables are created automatically when the server starts.
+## 7. Database Design (MySQL / MariaDB — XAMPP)
+The full SQL is in [`src/db/schema.sql`](../src/db/schema.sql). Tables are created automatically when the server starts, or imported in phpMyAdmin from [`database/women_platform.sql`](../database/women_platform.sql) (tables + demo data). Fixed value lists (user_type, statuses, document and payment types) are MySQL `ENUM` columns.
 
 ```
 users 1 ── 0..1 customers
@@ -70,44 +70,44 @@ chat_conversations 1 ── * chat_messages
 ### users
 | Column | Type | Constraints |
 |---|---|---|
-| user_id | SERIAL | PK |
+| user_id | INT AUTO_INCREMENT | PK |
 | full_name | TEXT | NOT NULL |
 | email | TEXT | NOT NULL, UNIQUE, valid format |
 | password | TEXT | bcrypt hash |
 | phone_number | TEXT | |
 | user_type | TEXT | customer \| provider \| admin |
-| created_at | TIMESTAMPTZ | default now() |
+| created_at | DATETIME | default now() |
 
 ### customers
 | Column | Type | Constraints |
 |---|---|---|
-| customer_id | SERIAL | PK |
+| customer_id | INT AUTO_INCREMENT | PK |
 | user_id | INT | FK → users, UNIQUE |
 | loyalty_points | INT | default 0, ≥ 0 |
 
 ### service_providers
 | Column | Type | Constraints |
 |---|---|---|
-| provider_id | SERIAL | PK |
+| provider_id | INT AUTO_INCREMENT | PK |
 | user_id | INT | FK → users, UNIQUE |
 | store_name | TEXT | NOT NULL |
 | national_id | TEXT | UNIQUE |
-| rating | NUMERIC(2,1) | average of reviews, auto-updated |
+| rating | DECIMAL(2,1) | average of reviews, auto-updated |
 | verification_status | TEXT | pending \| accepted \| rejected |
 
 ### verification_documents
 | Column | Type | Constraints |
 |---|---|---|
-| document_id | SERIAL | PK |
+| document_id | INT AUTO_INCREMENT | PK |
 | provider_id | INT | FK → service_providers |
 | document_type | TEXT | id_card \| criminal_record \| birth_certificate |
 | file_url | TEXT | NOT NULL |
-| uploaded_at | TIMESTAMPTZ | default now() |
+| uploaded_at | DATETIME | default now() |
 
 ### user_addresses
 | Column | Type | Constraints |
 |---|---|---|
-| address_id | SERIAL | PK |
+| address_id | INT AUTO_INCREMENT | PK |
 | user_id | INT | FK → users |
 | street_address, city | TEXT | NOT NULL |
 | district, building_number, floor | TEXT | |
@@ -115,7 +115,7 @@ chat_conversations 1 ── * chat_messages
 ### categories
 | Column | Type | Constraints |
 |---|---|---|
-| category_id | SERIAL | PK |
+| category_id | INT AUTO_INCREMENT | PK |
 | category_name | TEXT | NOT NULL, UNIQUE |
 | description | TEXT | |
 | parent_category_id | INT | FK → categories (self) |
@@ -123,12 +123,12 @@ chat_conversations 1 ── * chat_messages
 ### food_items
 | Column | Type | Constraints |
 |---|---|---|
-| food_item_id | SERIAL | PK |
+| food_item_id | INT AUTO_INCREMENT | PK |
 | provider_id | INT | FK → service_providers |
 | category_id | INT | FK → categories |
 | title | TEXT | NOT NULL |
 | description | TEXT | |
-| price | NUMERIC(10,2) | ≥ 0 |
+| price | DECIMAL(10,2) | ≥ 0 |
 | stock_quantity | INT | ≥ 0, NULL = made to order |
 | is_available | BOOLEAN | default true |
 | preparation_time_min | INT | > 0 |
@@ -137,12 +137,12 @@ chat_conversations 1 ── * chat_messages
 ### craft_items
 | Column | Type | Constraints |
 |---|---|---|
-| craft_item_id | SERIAL | PK |
+| craft_item_id | INT AUTO_INCREMENT | PK |
 | provider_id | INT | FK → service_providers |
 | category_id | INT | FK → categories |
 | title | TEXT | NOT NULL |
 | description | TEXT | |
-| price | NUMERIC(10,2) | ≥ 0 |
+| price | DECIMAL(10,2) | ≥ 0 |
 | stock_quantity | INT | ≥ 0, NULL = made to order |
 | customizable | BOOLEAN | default false |
 | material_used | TEXT | |
@@ -150,18 +150,18 @@ chat_conversations 1 ── * chat_messages
 ### domestic_services
 | Column | Type | Constraints |
 |---|---|---|
-| service_id | SERIAL | PK |
+| service_id | INT AUTO_INCREMENT | PK |
 | provider_id | INT | FK → service_providers |
 | category_id | INT | FK → categories |
 | title | TEXT | NOT NULL |
 | description | TEXT | |
-| hourly_rate | NUMERIC(10,2) | ≥ 0 |
-| hours_needed | NUMERIC(4,1) | > 0, default 1 |
+| hourly_rate | DECIMAL(10,2) | ≥ 0 |
+| hours_needed | DECIMAL(4,1) | > 0, default 1 |
 
 ### appointment_slots
 | Column | Type | Constraints |
 |---|---|---|
-| slot_id | SERIAL | PK |
+| slot_id | INT AUTO_INCREMENT | PK |
 | service_id | INT | FK → domestic_services |
 | slot_date | DATE | NOT NULL |
 | start_time, end_time | TIME | end_time > start_time |
@@ -170,70 +170,70 @@ chat_conversations 1 ── * chat_messages
 ### orders
 | Column | Type | Constraints |
 |---|---|---|
-| order_id | SERIAL | PK |
+| order_id | INT AUTO_INCREMENT | PK |
 | customer_id | INT | FK → customers |
 | provider_id | INT | FK → service_providers |
 | delivery_address_id | INT | FK → user_addresses |
 | special_instruction | TEXT | |
 | status | TEXT | pending \| accepted \| in_progress \| completed \| cancelled |
-| sub_total_amount | NUMERIC(10,2) | sum of lines |
-| delivery_fee | NUMERIC(10,2) | 20 if the order has food/craft items |
-| total_amount | NUMERIC(10,2) | subtotal + delivery fee |
-| order_date | TIMESTAMPTZ | default now() |
+| sub_total_amount | DECIMAL(10,2) | sum of lines |
+| delivery_fee | DECIMAL(10,2) | 20 if the order has food/craft items |
+| total_amount | DECIMAL(10,2) | subtotal + delivery fee |
+| order_date | DATETIME | default now() |
 
 ### order_items
 | Column | Type | Constraints |
 |---|---|---|
-| order_item_id | SERIAL | PK |
+| order_item_id | INT AUTO_INCREMENT | PK |
 | order_id | INT | FK → orders |
 | item_type | TEXT | food \| craft \| service |
 | food_item_id / craft_item_id / service_id | INT | FK, the one matching item_type |
 | slot_id | INT | FK → appointment_slots (services) |
-| unit_price | NUMERIC(10,2) | price at order time (service: hourly_rate × hours_needed) |
+| unit_price | DECIMAL(10,2) | price at order time (service: hourly_rate × hours_needed) |
 | quantity | INT | ≥ 1 |
-| sub_total | NUMERIC(10,2) | unit_price × quantity |
+| sub_total | DECIMAL(10,2) | unit_price × quantity |
 
 ### payment_transactions
 | Column | Type | Constraints |
 |---|---|---|
-| transaction_id | SERIAL | PK |
+| transaction_id | INT AUTO_INCREMENT | PK |
 | order_id | INT | FK → orders |
 | user_id | INT | FK → users (payer) |
-| amount | NUMERIC(10,2) | order total |
+| amount | DECIMAL(10,2) | order total |
 | payment_method | TEXT | cash \| card |
 | payment_status | TEXT | pending \| success \| failed |
-| created_at | TIMESTAMPTZ | default now() |
+| created_at | DATETIME | default now() |
 
 ### reviews
 | Column | Type | Constraints |
 |---|---|---|
-| review_id | SERIAL | PK |
+| review_id | INT AUTO_INCREMENT | PK |
 | order_id | INT | FK → orders, UNIQUE (one review per order) |
 | customer_id | INT | FK → customers |
 | provider_id | INT | FK → service_providers |
 | rating | INT | 1–5 |
 | comment | TEXT | |
-| created_at | TIMESTAMPTZ | default now() |
+| created_at | DATETIME | default now() |
 
 ### chat_conversations
 | Column | Type | Constraints |
 |---|---|---|
-| conversation_id | SERIAL | PK |
+| conversation_id | INT AUTO_INCREMENT | PK |
 | customer_id | INT | FK → customers |
 | provider_id | INT | FK → service_providers |
-| created_at | TIMESTAMPTZ | default now() |
-| last_message_at | TIMESTAMPTZ | updated on each message |
+| created_at | DATETIME | default now() |
+| last_message_at | DATETIME | updated on each message |
 | | | UNIQUE (customer_id, provider_id) |
 
 ### chat_messages
 | Column | Type | Constraints |
 |---|---|---|
-| message_id | SERIAL | PK |
+| message_id | INT AUTO_INCREMENT | PK |
 | conversation_id | INT | FK → chat_conversations |
 | sender_id | INT | FK → users |
 | message_text | TEXT | NOT NULL |
 | is_read | BOOLEAN | default false |
-| sent_at | TIMESTAMPTZ | default now() |
+| sent_at | DATETIME | default now() |
 
 **Small additions to the ERD:** `users.password` and `created_at` (needed for login); `verification_documents.file_url` (where the document is); `order_items.slot_id` (which slot a service order books). `OrderItem.UserID` from the ERD is left out because the order already links the customer.
 

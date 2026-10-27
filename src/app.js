@@ -1,36 +1,28 @@
 const express = require('express');
-const items = require('./routes/items');
+const itemRoutes = require('./modules/item/item.routes');
+const notFound = require('./middleware/not-found.middleware');
+const errorHandler = require('./middleware/error.middleware');
 
 const app = express();
 app.use(express.json());
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/addresses', require('./routes/addresses'));
-app.use('/api/categories', require('./routes/categories'));
-app.use('/api/providers', require('./routes/providers'));
-app.use('/api/documents', require('./routes/documents'));
-app.use('/api/foods', items(require('./models/FoodItem'), 'Food item'));
-app.use('/api/crafts', items(require('./models/CraftItem'), 'Craft item'));
-app.use('/api/services', items(require('./models/DomesticService'), 'Service'));
-app.use('/api/slots', require('./routes/slots'));
-app.use('/api/orders', require('./routes/orders'));
-app.use('/api/payments', require('./routes/payments'));
-app.use('/api/reviews', require('./routes/reviews'));
-app.use('/api/conversations', require('./routes/conversations'));
+app.use('/api/auth', require('./modules/auth/auth.routes'));
+app.use('/api/users', require('./modules/user/user.routes'));
+app.use('/api/addresses', require('./modules/address/address.routes'));
+app.use('/api/categories', require('./modules/category/category.routes'));
+app.use('/api/providers', require('./modules/provider/provider.routes'));
+app.use('/api/documents', require('./modules/document/document.routes'));
+app.use('/api/foods', itemRoutes(require('./modules/item/food.model'), 'Food item'));
+app.use('/api/crafts', itemRoutes(require('./modules/item/craft.model'), 'Craft item'));
+app.use('/api/services', itemRoutes(require('./modules/item/service.model'), 'Service'));
+app.use('/api/slots', require('./modules/slot/slot.routes'));
+app.use('/api/orders', require('./modules/order/order.routes'));
+app.use('/api/payments', require('./modules/payment/payment.routes'));
+app.use('/api/reviews', require('./modules/review/review.routes'));
+app.use('/api/conversations', require('./modules/chat/chat.routes'));
 
-app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
-
-// Express 5 forwards async errors here automatically.
-app.use((err, req, res, next) => {
-  if (err.type === 'entity.parse.failed') return res.status(400).json({ message: 'Invalid JSON body' });
-  if (err.status) return res.status(err.status).json({ message: err.message }); // httpError from a model
-  if (err.code === '23505') return res.status(409).json({ message: `Already exists: ${err.detail}` });
-  // Postgres classes 22 (bad data, e.g. "abc" as an id) and 23 (constraint violations) are client errors.
-  if (/^2[23]/.test(err.code)) return res.status(400).json({ message: err.detail || err.message });
-  console.error(err);
-  res.status(500).json({ message: 'Server error' });
-});
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;
