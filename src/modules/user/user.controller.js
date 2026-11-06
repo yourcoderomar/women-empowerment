@@ -1,16 +1,21 @@
+const Controller = require('../../core/Controller');
 const User = require('./user.model');
 
-// Admin: list users, e.g. ?user_type=provider&verification_status=pending
-exports.list = async (req, res) => {
-  res.json(await User.findProfiles(req.query));
-};
+class UserController extends Controller {
+  // Admin: list users, e.g. ?user_type=provider&verification_status=pending
+  async list(req, res) {
+    res.json(await this.model.findProfiles(req.query));
+  }
 
-// Email, user_type and password are not editable here.
-exports.updateMe = async (req, res) => {
-  res.json(await User.update(req.user.user_id, req.body));
-};
+  // Only name and phone can change here (see UserModel).
+  async updateMe(req, res) {
+    res.json(await this.model.update(req.user.user_id, req.body));
+  }
 
-exports.deleteMe = async (req, res) => {
-  await User.remove(req.user.user_id);
-  res.status(204).end();
-};
+  async deleteMe(req, res) {
+    await this.model.remove(req.user.user_id); // everything they own is deleted too (ON DELETE CASCADE)
+    res.status(204).end();
+  }
+}
+
+module.exports = new UserController(User, 'User');

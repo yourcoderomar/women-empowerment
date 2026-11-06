@@ -43,8 +43,9 @@ src/
     auth.middleware.js   JWT check, role check, verified-provider check
     error.middleware.js  turns errors into JSON + status codes
     not-found.middleware.js
-  utils/
-    crud.factory.js      shared create/read/update/delete for simple tables
+  core/
+    Model.js             parent class of every model: findAll, findById, create, update, remove
+    Controller.js        parent class of every controller: list, get, create, update, remove
   modules/
     auth/                register, login, me
     user/                users + customers
@@ -62,6 +63,12 @@ test/api.test.js         end-to-end test
 docs/requirements.md     requirements + database design + endpoints
 postman_collection.json
 ```
+
+### Adding a new CRUD table
+1. Add the table to `src/db/schema.sql`.
+2. Model: `class XModel extends Model { constructor() { super('x_table', 'x_id', ['col1', 'col2']); } }`, then `module.exports = new XModel();`
+3. Controller: `module.exports = new Controller(X, 'X');` (or extend `Controller` and override a method for extra rules).
+4. Routes: copy `category.routes.js`, then mount it in `src/app.js`.
 
 If you change `src/db/schema.sql` or `src/db/seed.sql`, rebuild the import file so they stay in sync.
 

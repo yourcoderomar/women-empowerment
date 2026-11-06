@@ -1,3 +1,9 @@
-const crud = require('../../utils/crud.factory');
+const Model = require('../../core/Model');
 
-module.exports = crud('verification_documents', 'document_id', ['document_type', 'file_url'], ['provider_id']);
+class DocumentModel extends Model {
+  constructor() {
+    super('verification_documents', 'document_id', ['document_type', 'file_url'], ['provider_id']);
+  }
+}
+
+module.exports = new DocumentModel();

@@ -1,3 +1,9 @@
-const crud = require('../../utils/crud.factory');
+const Model = require('../../core/Model');
 
-module.exports = crud('customers', 'customer_id', [], ['user_id']);
+class CustomerModel extends Model {
+  constructor() {
+    super('customers', 'customer_id', [], ['user_id']);
+  }
+}
+
+module.exports = new CustomerModel();

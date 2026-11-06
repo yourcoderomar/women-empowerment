@@ -1,3 +1,9 @@
-const crud = require('../../utils/crud.factory');
+const Model = require('../../core/Model');
 
-module.exports = crud('categories', 'category_id', ['category_name', 'description', 'parent_category_id']);
+class CategoryModel extends Model {
+  constructor() {
+    super('categories', 'category_id', ['category_name', 'description', 'parent_category_id'], []);
+  }
+}
+
+module.exports = new CategoryModel();

@@ -1,23 +1,27 @@
-const UserAddress = require('./address.model');
+const Controller = require('../../core/Controller');
+const Address = require('./address.model');
 
-// Middleware: loads the address and checks it belongs to the logged-in user.
-exports.loadOwn = async (req, res, next) => {
-  req.address = await UserAddress.findById(req.params.id);
-  if (req.address?.user_id !== req.user.user_id) return res.status(404).json({ message: 'Address not found' });
-  next();
-};
+// Every user only sees and changes their own addresses.
+class AddressController extends Controller {
+  // Middleware: loads the address and checks it belongs to the logged-in user.
+  async loadOwn(req, res, next) {
+    req.address = await this.model.findById(req.params.id);
+    if (req.address?.user_id !== req.user.user_id) return this.notFound(res);
+    next();
+  }
 
-exports.list = async (req, res) => res.json(await UserAddress.findAll({ user_id: req.user.user_id }));
+  async list(req, res) {
+    res.json(await this.model.findAll({ user_id: req.user.user_id }));
+  }
 
-exports.get = (req, res) => res.json(req.address);
+  get(req, res) {
+    res.json(req.address); // already loaded by loadOwn
+  }
 
-exports.create = async (req, res) => {
-  res.status(201).json(await UserAddress.create({ ...req.body, user_id: req.user.user_id }));
-};
+  async create(req, res) {
+    res.status(201).json(await this.model.create({ ...req.body, user_id: req.user.user_id }));
+  }
+  // update and remove are inherited from Controller.
+}
 
-exports.update = async (req, res) => res.json(await UserAddress.update(req.params.id, req.body));
-
-exports.remove = async (req, res) => {
-  await UserAddress.remove(req.params.id);
-  res.status(204).end();
-};
+module.exports = new AddressController(Address, 'Address');
