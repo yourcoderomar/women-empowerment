@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Women Empowerment Platform API",
-    "description": "Run the whole collection with the Collection Runner (folders in order). Needs the server on {{baseUrl}} and adminSecret = ADMIN_SECRET from .env. Skip \"11. Cleanup\" to keep the data.",
+    "description": "Run the whole collection with the Collection Runner (folders in order). Needs the server on {{baseUrl}} and adminSecret = ADMIN_SECRET from .env. Folders 1-10 create their own users and items, so they work on an empty database. Folder 11 uses the demo accounts, so load the demo data first (phpMyAdmin import or npm run seed). Skip \"12. Cleanup\" to keep the data. Select \"No environment\" in Postman: an environment with the same variable names (foodId, serviceId, ...) overrides this collection's values.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -75,6 +75,42 @@
     },
     {
       "key": "conversationId",
+      "value": ""
+    },
+    {
+      "key": "demoProviderToken",
+      "value": ""
+    },
+    {
+      "key": "demoProviderId",
+      "value": ""
+    },
+    {
+      "key": "demoCustomerToken",
+      "value": ""
+    },
+    {
+      "key": "demoFoodId",
+      "value": ""
+    },
+    {
+      "key": "demoCraftId",
+      "value": ""
+    },
+    {
+      "key": "demoServiceId",
+      "value": ""
+    },
+    {
+      "key": "demoSlotId",
+      "value": ""
+    },
+    {
+      "key": "demoOrderId",
+      "value": ""
+    },
+    {
+      "key": "demoExpectedTotal",
       "value": ""
     }
   ],
@@ -2348,7 +2384,301 @@
       ]
     },
     {
-      "name": "11. Cleanup",
+      "name": "11. Demo data (seeded accounts)",
+      "description": "Uses the demo accounts from database/women_platform.sql (or npm run seed). Mona sells food, crafts and a service, so one order can mix all three. Item ids are looked up, not hard-coded, and the order is cancelled at the end, so this folder can be run again and again.",
+      "item": [
+        {
+          "name": "Login Mona (provider)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200 (load the demo data first: npm run seed)', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('demoProviderToken', pm.response.json().token);",
+                  "pm.collectionVariables.set('demoProviderId', pm.response.json().user.provider_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mona@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mona's catalogue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const p = pm.response.json();",
+                  "const inStock = (i) => i.stock_quantity === null || i.stock_quantity > 0;",
+                  "const food = p.foods.find((f) => f.is_available && inStock(f));",
+                  "const craft = p.crafts.find(inStock);",
+                  "const service = p.services[0];",
+                  "pm.test('Mona sells food, a craft and a service', () => {",
+                  "  pm.expect(food, 'food').to.be.ok;",
+                  "  pm.expect(craft, 'craft (re-import the updated demo data)').to.be.ok;",
+                  "  pm.expect(service, 'service (re-import the updated demo data)').to.be.ok;",
+                  "});",
+                  "pm.collectionVariables.set('demoFoodId', food.food_item_id);",
+                  "pm.collectionVariables.set('demoCraftId', craft.craft_item_id);",
+                  "pm.collectionVariables.set('demoServiceId', service.service_id);",
+                  "// 1 food + 1 craft + the service's hours + 20 delivery",
+                  "pm.collectionVariables.set('demoExpectedTotal', food.price + craft.price + service.hourly_rate * service.hours_needed + 20);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/providers/{{demoProviderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "providers",
+                "{{demoProviderId}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Mona adds a free slot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('demoSlotId', pm.response.json().slot_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{demoProviderToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/slots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "slots"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_id\": \"{{demoServiceId}}\",\n  \"slot_date\": \"2026-12-20\",\n  \"start_time\": \"09:00\",\n  \"end_time\": \"12:00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Sara (customer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('demoCustomerToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sara@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Sara orders food + craft + service from Mona",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const order = pm.response.json();",
+                  "pm.collectionVariables.set('demoOrderId', order.order_id);",
+                  "pm.test('3 lines in one order', () => pm.expect(order.items).to.have.length(3));",
+                  "pm.test('total = food + craft + service + 20 delivery', () =>",
+                  "  pm.expect(order.total_amount).to.eql(Number(pm.collectionVariables.get('demoExpectedTotal'))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{demoCustomerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"item_type\": \"food\",\n      \"item_id\": \"{{demoFoodId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"item_type\": \"craft\",\n      \"item_id\": \"{{demoCraftId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"item_type\": \"service\",\n      \"item_id\": \"{{demoServiceId}}\",\n      \"slot_id\": \"{{demoSlotId}}\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Sara cancels it (stock and slot are given back)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('order is cancelled', () => pm.expect(pm.response.json().status).to.eql('cancelled'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{demoCustomerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{demoOrderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{demoOrderId}}",
+                "status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mona removes the slot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{demoProviderToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/slots/{{demoSlotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "slots",
+                "{{demoSlotId}}"
+              ],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Cleanup",
       "item": [
         {
           "name": "Delete review",

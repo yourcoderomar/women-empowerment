@@ -64,18 +64,21 @@ INSERT INTO food_items (provider_id, category_id, title, description, price, sto
 INSERT INTO craft_items (provider_id, category_id, title, description, price, stock_quantity, customizable, material_used) VALUES
   (2, 6, 'Knitted tote bag',  'Hand-knitted shoulder bag',            200, 2,    true,  'Cotton yarn'),
   (2, 6, 'Crochet blanket',   'Baby blanket, 80×100 cm',              450, 1,    true,  'Soft acrylic yarn'),
-  (2, 7, 'Beaded bracelet',   'Made to order in your colors',          60, NULL, true,  'Glass beads');
+  (2, 7, 'Beaded bracelet',   'Made to order in your colors',          60, NULL, true,  'Glass beads'),
+  (1, 6, 'Crochet cake cover',  'Handmade cover for cake trays',        80, NULL, true,  'Cotton yarn');
 
 INSERT INTO domestic_services (provider_id, category_id, title, description, hourly_rate, hours_needed) VALUES
   (3, 8, 'Full apartment cleaning', 'Up to 3 rooms, including bathrooms', 100, 4),
-  (3, 8, 'Kitchen deep clean',      'Cabinets, oven and fridge',          120, 2);
+  (3, 8, 'Kitchen deep clean',      'Cabinets, oven and fridge',          120, 2),
+  (1, 8, 'Kitchen cleaning after parties', 'Dishes, counters and floor',  80, 3);
 
 INSERT INTO appointment_slots (service_id, slot_date, start_time, end_time, is_booked) VALUES
   (1, '2026-11-01', '09:00', '13:00', true),
   (1, '2026-11-02', '09:00', '13:00', false),
   (1, '2026-11-04', '14:00', '18:00', false),
   (2, '2026-11-01', '14:00', '16:00', false),
-  (2, '2026-11-03', '10:00', '12:00', false);
+  (2, '2026-11-03', '10:00', '12:00', false),
+  (3, '2026-12-05', '16:00', '19:00', false);
 
 -- Orders in every status. Totals = sum of lines + 20 delivery for food/craft orders.
 INSERT INTO orders (customer_id, provider_id, delivery_address_id, special_instruction, status, sub_total_amount, delivery_fee, total_amount, order_date) VALUES

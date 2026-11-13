@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS users (
   user_id      INT AUTO_INCREMENT PRIMARY KEY,
   full_name    VARCHAR(100) NOT NULL CHECK (full_name <> ''),
-  email        VARCHAR(255) NOT NULL UNIQUE CHECK (email REGEXP '^[^ @]+@[^ @]+[.][^ @]+$'),
+  email        VARCHAR(191) NOT NULL UNIQUE CHECK (email REGEXP '^[^ @]+@[^ @]+[.][^ @]+$'),
   password     VARCHAR(255) NOT NULL, -- bcrypt hash, never returned by the API
   phone_number VARCHAR(30),
   user_type    ENUM('customer', 'provider', 'admin') NOT NULL,

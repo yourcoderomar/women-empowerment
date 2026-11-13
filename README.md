@@ -21,10 +21,19 @@ Demo accounts (password `password123`): admin@example.com, mona@example.com (pro
 **Admin accounts:** register with `"user_type": "admin"` and `"admin_secret"` equal to `ADMIN_SECRET` in `.env`.
 **Providers** must be accepted by an admin (`PATCH /api/providers/:id/verification`) before they can sell.
 
+## Frontend (React)
+A small React app (Vite) lives in `client/`. It sends `/api` requests through to the backend on port 3000.
+1. Start the backend (above).
+2. `cd client` → `npm install` → `npm run dev` → open http://localhost:5173
+
+Pages (React Router): `/` browse food / crafts / services and order, `/login` log in or register,
+`/orders` my orders with status buttons, `/sell` add an item (verified provider), `/admin` verify pending providers (admin).
+Code lives in `client/src/pages` (one file per page) and `client/src/components` (shared pieces).
+
 ## Test
 - `npm test` runs the full flow against MySQL. It needs XAMPP's MySQL running; it creates a throwaway database
   `women_platform_test` and drops it at the end, so your real data is never touched.
-- Postman: import `postman_collection.json` and run it with the Collection Runner (folders in order). It saves tokens and ids automatically. `adminSecret` must match `ADMIN_SECRET`. Skip "11. Cleanup" to keep the data.
+- Postman: import `postman_collection.json` and run it with the Collection Runner (folders in order). It saves tokens and ids automatically. `adminSecret` must match `ADMIN_SECRET`. Skip "12. Cleanup" to keep the data.
 
 ## Structure
 Organised by feature: each folder in `src/modules` holds that feature's routes (URLs), controller (request handling)

@@ -65,7 +65,7 @@ PK = Primary Key, FK = Foreign Key, UQ = Unique.
 |---|---|---|
 | user_id | INT | PK, AUTO_INCREMENT |
 | full_name | VARCHAR(100) | NOT NULL, not empty |
-| email | VARCHAR(255) | NOT NULL, UQ, valid email format |
+| email | VARCHAR(191) | NOT NULL, UQ, valid email format |
 | password | VARCHAR(255) | NOT NULL (bcrypt hash) |
 | phone_number | VARCHAR(30) | |
 | user_type | ENUM('customer','provider','admin') | NOT NULL |

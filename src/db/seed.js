@@ -1,5 +1,5 @@
 // Fills the database with demo data (wipes existing data first). Run: npm run seed
-const { pool, init, runFile } = require('./db');
+const { pool, init, runFile } = require('./connection');
 
 (async () => {
   await init();
