@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api } from '../api.js';
+import { api, uploadImage } from '../api.js';
 import { KINDS } from '../kinds.js';
 import Field from '../components/Field.jsx';
 import PageHead from '../components/PageHead.jsx';
@@ -12,8 +12,10 @@ export default function Sell({ user }) {
 
   async function submit(e) {
     e.preventDefault();
-    const body = Object.fromEntries([...new FormData(e.target)].filter(([, v]) => v !== ''));
+    const { photo, ...rest } = Object.fromEntries(new FormData(e.target));
+    const body = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== ''));
     try {
+      if (photo.size) body.image_url = await uploadImage(photo);
       const item = await api(k.path, { method: 'POST', body });
       setMsg({ text: `"${item.title}" is now listed.` });
       e.target.reset();
@@ -46,6 +48,9 @@ export default function Sell({ user }) {
         </Field>
         <Field label="Title"><input name="title" required /></Field>
         <Field label="Description"><textarea name="description" rows={3} /></Field>
+        <Field label="Photo" hint="Optional · JPEG, PNG or WebP, up to 2 MB">
+          <input name="photo" type="file" accept="image/jpeg,image/png,image/webp" />
+        </Field>
         <div className="two">
           <Field label={kind === 'service' ? 'Hourly rate (EGP)' : 'Price (EGP)'}>
             <input name={k.price} type="number" step="0.01" min="0" required />

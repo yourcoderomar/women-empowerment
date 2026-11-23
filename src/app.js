@@ -3,6 +3,8 @@ const itemRoutes = require('./modules/item/item.routes');
 const notFound = require('./middleware/not-found.middleware');
 const errorHandler = require('./middleware/error.middleware');
 
+const upload = require('./modules/upload/upload.routes');
+
 const app = express();
 app.use(express.json());
 
@@ -16,6 +18,8 @@ app.use('/api/documents', require('./modules/document/document.routes'));
 app.use('/api/foods', itemRoutes(require('./modules/item/food.model'), 'Food item'));
 app.use('/api/crafts', itemRoutes(require('./modules/item/craft.model'), 'Craft item'));
 app.use('/api/services', itemRoutes(require('./modules/item/service.model'), 'Service'));
+app.use('/api/uploads', upload.router);
+app.use('/uploads', express.static(upload.DIR));
 app.use('/api/slots', require('./modules/slot/slot.routes'));
 app.use('/api/orders', require('./modules/order/order.routes'));
 app.use('/api/payments', require('./modules/payment/payment.routes'));

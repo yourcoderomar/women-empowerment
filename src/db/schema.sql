@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS food_items (
   is_available         BOOLEAN NOT NULL DEFAULT TRUE,
   preparation_time_min INT CHECK (preparation_time_min > 0),
   nutrition_facts      TEXT,
+  image_url VARCHAR(255),
   created_at           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (provider_id) REFERENCES service_providers(provider_id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL
@@ -82,6 +83,7 @@ CREATE TABLE IF NOT EXISTS craft_items (
   stock_quantity INT CHECK (stock_quantity >= 0), -- NULL = made to order, no stock limit
   customizable   BOOLEAN NOT NULL DEFAULT FALSE,
   material_used  VARCHAR(150),
+  image_url VARCHAR(255),
   created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (provider_id) REFERENCES service_providers(provider_id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL
@@ -95,6 +97,7 @@ CREATE TABLE IF NOT EXISTS domestic_services (
   description  TEXT,
   hourly_rate  DECIMAL(10, 2) NOT NULL CHECK (hourly_rate >= 0),
   hours_needed DECIMAL(4, 1) NOT NULL DEFAULT 1 CHECK (hours_needed > 0),
+  image_url VARCHAR(255),
   created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (provider_id) REFERENCES service_providers(provider_id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL

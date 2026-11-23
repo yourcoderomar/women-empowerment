@@ -30,7 +30,14 @@ async function runFile(name) {
   }
 }
 
-const init = () => runFile('schema.sql');
+// Creates tables, and adds image_url to databases made before that column existed.
+async function init() {
+  await runFile('schema.sql');
+  for (const t of ['food_items', 'craft_items', 'domestic_services']) {
+    const [col] = await pool.query(`SHOW COLUMNS FROM ${t} LIKE 'image_url'`);
+    if (!col.length) await pool.query(`ALTER TABLE ${t} ADD COLUMN image_url VARCHAR(255)`);
+  }
+}
 
 // Shortcuts used by the models. Pass `db` to run inside a transaction.
 //   query: SELECT → rows; INSERT/UPDATE/DELETE → { insertId, affectedRows }

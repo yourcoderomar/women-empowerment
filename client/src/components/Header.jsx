@@ -1,6 +1,6 @@
 import { Link, NavLink } from 'react-router-dom';
 
-export default function Header({ user, onLogout }) {
+export default function Header({ user, cartCount, onLogout }) {
   const tabs = [['/', 'Browse']];
   if (user) tabs.push(['/orders', 'Orders']);
   if (user?.user_type === 'provider') tabs.push(['/sell', 'Sell']);
@@ -15,6 +15,11 @@ export default function Header({ user, onLogout }) {
             <NavLink key={to} to={to} end className={({ isActive }) => (isActive ? 'tab on' : 'tab')}>{label}</NavLink>
           ))}
         </nav>
+        {cartCount !== null && (
+          <NavLink to="/cart" className={({ isActive }) => (isActive ? 'tab on cart-link' : 'tab cart-link')}>
+            Cart{cartCount > 0 && <span className="badge">{cartCount}</span>}
+          </NavLink>
+        )}
         {user ? (
           <div className="who">
             <span className="avatar">{user.full_name?.[0]}</span>

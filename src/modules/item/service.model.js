@@ -3,7 +3,7 @@ const ItemModel = require('./item.model');
 class DomesticServiceModel extends ItemModel {
   constructor() {
     super('domestic_services', 'service_id', [
-      'category_id', 'title', 'description', 'hourly_rate', 'hours_needed',
+      'category_id', 'title', 'description', 'hourly_rate', 'hours_needed', 'image_url',
     ], 'hourly_rate');
   }
 

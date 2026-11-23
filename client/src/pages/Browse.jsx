@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { KINDS } from '../kinds.js';
 import ItemCard from '../components/ItemCard.jsx';
@@ -7,8 +7,7 @@ import Empty from '../components/Empty.jsx';
 import Banner from '../components/Banner.jsx';
 import { CardSkeletons } from '../components/Skeleton.jsx';
 
-export default function Browse({ user }) {
-  const navigate = useNavigate();
+export default function Browse({ user, cart }) {
   const [kind, setKind] = useState('food');
   const [q, setQ] = useState('');
   const [items, setItems] = useState(null); // null = loading
@@ -22,15 +21,13 @@ export default function Browse({ user }) {
     return () => clearTimeout(t);
   }, [kind, q]);
 
-  async function order(item) {
-    if (!user) return navigate('/login', { state: { from: '/' } });
-    try {
-      const o = await api('/orders', { method: 'POST', body: { items: [{ item_type: kind, item_id: item[k.id], quantity: 1 }] } });
-      setMsg({ text: `Order #${o.order_id} placed. Total ${o.total_amount} EGP.` });
-    } catch (e) { setMsg({ error: true, text: e.message }); }
+  // Adding only fills the cart; the order is placed from the cart page.
+  function add(item) {
+    if (!cart.add(kind, item)) return;
+    setMsg({ text: <>Added "{item.title}" to your cart. <Link to="/cart">View cart</Link></> });
   }
 
-  const canOrder = !user || user.user_type === 'customer';
+  const canBuy = !user || user.user_type === 'customer';
 
   return (
     <>
@@ -56,7 +53,7 @@ export default function Browse({ user }) {
       {items === null ? <CardSkeletons /> : items.length ? (
         <div className="grid">
           {items.map((item, i) => (
-            <ItemCard key={item[k.id]} item={item} kind={kind} index={i} onOrder={canOrder ? order : null} />
+            <ItemCard key={item[k.id]} item={item} kind={kind} index={i} onAdd={canBuy ? add : null} />
           ))}
         </div>
       ) : (

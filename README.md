@@ -26,8 +26,9 @@ A small React app (Vite) lives in `client/`. It sends `/api` requests through to
 1. Start the backend (above).
 2. `cd client` → `npm install` → `npm run dev` → open http://localhost:5173
 
-Pages (React Router): `/` browse food / crafts / services and order, `/login` log in or register,
-`/orders` my orders with status buttons, `/sell` add an item (verified provider), `/admin` verify pending providers (admin).
+Pages (React Router): `/` browse food / crafts / services and add to cart, `/login` log in or register,
+`/cart` checkout (quantities, appointment time for services, address, note → place order),
+`/orders` my orders with status buttons, `/orders/:id` one order with its progress, `/sell` add an item (verified provider), `/admin` verify pending providers (admin).
 Code lives in `client/src/pages` (one file per page) and `client/src/components` (shared pieces).
 
 ## Test
