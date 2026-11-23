@@ -311,3 +311,16 @@ a.row-main:hover strong { color: var(--accent); }
 .photo-ph.warm { background: radial-gradient(120% 90% at 20% 10%, #fde7d3 0%, #f6d2c2 55%, #efc0b3 100%); }
 .photo-ph.rose { background: radial-gradient(120% 90% at 80% 10%, #fbe4ee 0%, #f3cfe0 55%, #e9bcd2 100%); }
 .photo-ph.cool { background: radial-gradient(120% 90% at 30% 0%, #e4eef4 0%, #d2e1ea 55%, #c1d4e0 100%); }
+
+/* ---------- stock ---------- */
+.item .photo { position: relative; }
+.stock-tag {
+  position: absolute; top: 12px; left: 12px;
+  padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  background: rgba(24, 24, 27, 0.82); color: #fff; backdrop-filter: blur(6px);
+}
+.stock-tag.low { background: rgba(255, 255, 255, 0.9); color: var(--accent-ink); }
+.item.sold-out .photo img, .item.sold-out .photo .photo-ph { filter: grayscale(1); opacity: 0.55; }
+.item.sold-out:hover { transform: none; box-shadow: none; }
+.btn:disabled, .btn:disabled:hover { background: #e4e4e7; border-color: #e4e4e7; color: var(--ink-3); cursor: not-allowed; transform: none; }
+.stepper button:disabled { color: var(--line); cursor: not-allowed; }

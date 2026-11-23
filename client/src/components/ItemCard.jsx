@@ -16,11 +16,18 @@ function Placeholder({ item, kind }) {
 export default function ItemCard({ item, kind, index, onAdd }) {
   const k = KINDS[kind];
   const [broken, setBroken] = useState(false);
+  // stock_quantity: null = made to order (never runs out); services have no stock.
+  const stock = item.stock_quantity ?? null;
+  const soldOut = stock !== null && stock <= 0;
   return (
-    <article className="item" style={{ '--i': index }}>
-      {item.image_url && !broken
-        ? <img src={item.image_url} alt={item.title} loading="lazy" onError={() => setBroken(true)} />
-        : <Placeholder item={item} kind={kind} />}
+    <article className={soldOut ? 'item sold-out' : 'item'} style={{ '--i': index }}>
+      <div className="photo">
+        {item.image_url && !broken
+          ? <img src={item.image_url} alt={item.title} loading="lazy" onError={() => setBroken(true)} />
+          : <Placeholder item={item} kind={kind} />}
+        {soldOut && <span className="stock-tag">Out of stock</span>}
+        {!soldOut && stock !== null && stock <= 3 && <span className="stock-tag low">Only {stock} left</span>}
+      </div>
       <div className="item-body">
         <p className="maker">{item.store_name}</p>
         <h3>{item.title}</h3>
@@ -29,7 +36,9 @@ export default function ItemCard({ item, kind, index, onAdd }) {
           <p className="price">
             {Number(item[k.price]).toFixed(2)} <small>EGP{kind === 'service' && ` / hr · ${item.hours_needed} hr`}</small>
           </p>
-          {onAdd && <button className="btn sm" onClick={() => onAdd(item)}>{kind === 'service' ? 'Book' : 'Add to cart'}</button>}
+          {onAdd && (soldOut
+            ? <button className="btn sm" disabled>Out of stock</button>
+            : <button className="btn sm" onClick={() => onAdd(item)}>{kind === 'service' ? 'Book' : 'Add to cart'}</button>)}
         </div>
       </div>
     </article>

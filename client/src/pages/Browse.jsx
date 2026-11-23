@@ -23,7 +23,9 @@ export default function Browse({ user, cart }) {
 
   // Adding only fills the cart; the order is placed from the cart page.
   function add(item) {
-    if (!cart.add(kind, item)) return;
+    const result = cart.add(kind, item);
+    if (result === 'max') return setMsg({ error: true, text: <>You already have all {item.stock_quantity} "{item.title}" in your cart. <Link to="/cart">View cart</Link></> });
+    if (result !== 'added') return;
     setMsg({ text: <>Added "{item.title}" to your cart. <Link to="/cart">View cart</Link></> });
   }
 

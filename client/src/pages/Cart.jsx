@@ -64,7 +64,10 @@ export default function Cart({ user, cart }) {
                 <div className="line" key={l.key}>
                   <div className="line-info">
                     <strong>{l.title}</strong>
-                    <small className="muted">{l.kind === 'service' ? `${l.hours} hr service` : `${money(l.unit)} each`}</small>
+                    <small className="muted">
+                      {l.kind === 'service' ? `${l.hours} hr service` : `${money(l.unit)} each`}
+                      {l.stock != null && l.qty >= l.stock && ` · that's all ${l.stock} in stock`}
+                    </small>
                     {l.kind === 'service' && (
                       <Field label="Appointment">
                         <SlotPicker serviceId={l.item_id} value={l.slot_id} onChange={(slot_id) => cart.update(l.key, { slot_id })} />
@@ -75,7 +78,8 @@ export default function Cart({ user, cart }) {
                     <div className="stepper" aria-label={`Quantity of ${l.title}`}>
                       <button type="button" onClick={() => (l.qty > 1 ? cart.update(l.key, { qty: l.qty - 1 }) : cart.remove(l.key))} aria-label="Less">−</button>
                       <span className="mono">{l.qty}</span>
-                      <button type="button" onClick={() => cart.update(l.key, { qty: l.qty + 1 })} aria-label="More">+</button>
+                      <button type="button" onClick={() => cart.update(l.key, { qty: l.qty + 1 })} aria-label="More"
+                        disabled={l.stock != null && l.qty >= l.stock} title={l.stock != null && l.qty >= l.stock ? `Only ${l.stock} available` : undefined}>+</button>
                     </div>
                   )}
                   <span className="mono line-total">{money(l.unit * l.qty)}</span>
