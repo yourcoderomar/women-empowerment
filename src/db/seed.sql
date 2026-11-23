@@ -72,6 +72,14 @@ INSERT INTO domestic_services (provider_id, category_id, title, description, hou
   (3, 8, 'Kitchen deep clean',      'Cabinets, oven and fridge',          120, 2),
   (1, 8, 'Kitchen cleaning after parties', 'Dishes, counters and floor',  80, 3);
 
+-- Demo photos, served by the frontend from client/public/images.
+UPDATE food_items SET image_url = CONCAT('/images/', LOWER(REPLACE(title, ' ', '-')), '.webp')
+  WHERE title IN ('Chocolate cake', 'Molokhia with rice', 'Basbousa tray');
+UPDATE craft_items SET image_url = CONCAT('/images/', LOWER(REPLACE(title, ' ', '-')), '.webp')
+  WHERE title IN ('Knitted tote bag', 'Crochet blanket', 'Beaded bracelet', 'Crochet cake cover');
+UPDATE domestic_services SET image_url = CONCAT('/images/', LOWER(REPLACE(title, ' ', '-')), '.webp')
+  WHERE title IN ('Full apartment cleaning', 'Kitchen deep clean', 'Kitchen cleaning after parties');
+
 INSERT INTO appointment_slots (service_id, slot_date, start_time, end_time, is_booked) VALUES
   (1, '2026-11-01', '09:00', '13:00', true),
   (1, '2026-11-02', '09:00', '13:00', false),
