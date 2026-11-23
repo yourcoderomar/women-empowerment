@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 export default function Header({ user, cartCount, onLogout }) {
   const tabs = [['/', 'Browse']];
   if (user) tabs.push(['/orders', 'Orders']);
-  if (user?.user_type === 'provider') tabs.push(['/sell', 'Sell']);
+  if (user?.user_type === 'provider') tabs.push(['/listings', 'My shop'], ['/documents', 'Documents']);
   if (user?.user_type === 'admin') tabs.push(['/admin', 'Verify']);
 
   return (
@@ -12,7 +12,7 @@ export default function Header({ user, cartCount, onLogout }) {
         <Link className="brand" to="/">Bayt<span>.</span></Link>
         <nav className="tabs">
           {tabs.map(([to, label]) => (
-            <NavLink key={to} to={to} end className={({ isActive }) => (isActive ? 'tab on' : 'tab')}>{label}</NavLink>
+            <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => (isActive ? 'tab on' : 'tab')}>{label}</NavLink>
           ))}
         </nav>
         {cartCount !== null && (

@@ -10,6 +10,9 @@ import Cart from './pages/Cart.jsx';
 import Orders from './pages/Orders.jsx';
 import OrderDetail from './pages/OrderDetail.jsx';
 import Sell from './pages/Sell.jsx';
+import Listings from './pages/Listings.jsx';
+import Slots from './pages/Slots.jsx';
+import Documents from './pages/Documents.jsx';
 import Admin from './pages/Admin.jsx';
 
 // Holds the logged-in user and the cart, and maps URLs to pages.
@@ -24,6 +27,11 @@ export default function App() {
     if (!localStorage.getItem('token')) return;
     api('/auth/me').then(setUser).catch(() => localStorage.removeItem('token')).finally(() => setReady(true));
   }, []);
+
+  // A provider waiting for verification gets the new status on the next page change, not only after logging in again.
+  useEffect(() => {
+    if (user?.user_type === 'provider' && user.verification_status !== 'accepted') api('/auth/me').then(setUser).catch(() => {});
+  }, [location.pathname]);
 
   const logout = () => { localStorage.removeItem('token'); setUser(null); navigate('/'); };
 
@@ -49,6 +57,9 @@ export default function App() {
           <Route path="/orders" element={guard(<Orders user={user} />)} />
           <Route path="/orders/:id" element={guard(<OrderDetail user={user} />)} />
           <Route path="/sell" element={guard(<Sell user={user} />, 'provider')} />
+          <Route path="/listings" element={guard(<Listings user={user} />, 'provider')} />
+          <Route path="/listings/services/:id/slots" element={guard(<Slots user={user} />, 'provider')} />
+          <Route path="/documents" element={guard(<Documents user={user} />, 'provider')} />
           <Route path="/admin" element={guard(<Admin />, 'admin')} />
           <Route path="*" element={<Empty title="Page not found">That link doesn't go anywhere. Use the menu above.</Empty>} />
         </Routes>
